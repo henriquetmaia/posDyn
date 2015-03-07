@@ -1,0 +1,148 @@
+#!/usr/bin/perl
+
+print "\\documentclass{article}\n";
+print "\\begin{document}\n";
+
+foreach( @ARGV )
+{
+   $inFn = $outFn = $_;
+   $outFn =~ s/\.h/\.tex/;
+
+   open( IN, "<".$inFn );
+   open( OUT, ">".$outFn );
+
+   $inheader = 1;
+   $inpublic = 0;
+   $incomment = 0;
+   $headertext = "";
+   $incode = 0;
+   $inmembers = 0;
+   $justsawclassref = 0;
+
+   while( <IN> )
+   {
+      chomp;
+      $line = $_;
+      $line =~ s/^\s+//;
+
+      if( $inheader && !( $line =~ m/^\/\// ))
+      {
+         $inheader = 0;
+         print $headertext . "\n\n";
+         print "\\subsubsection{Class Reference}\n\n";
+         $justsawclassref = 1;
+      }
+
+      if( $line =~ m/libDDG/ )
+      {
+         $classname = $line;
+         $classname =~ s/.*--//;
+         $classname =~ s/\.h//;
+         $classname =~ s/\s//;
+         print "\\pagebreak\n";
+         print "\\subsection{$classname}\n\n";
+      }
+
+      if( $line =~ m/public:/ )
+      {
+         $inpublic = 1;
+      }
+
+      if( $inpublic &&
+          $line =~ m/protected:/ ||
+          $line =~ m/};/ )
+      {
+         $inpublic = 0;
+      }
+
+      if( $inpublic && !$incomment && $line =~ m/\/\// )
+      {
+         $incomment = 1;
+
+         if( $inmembers )
+         {
+            print "\\end{verbatim}\n";
+            print "\\textbf{Purpose:}\n";
+            $inmembers = 0;
+         }
+      }
+
+      if( $incomment && !( $line =~ m/^\/\// ))
+      {
+         $incomment = 0;
+      }
+
+      if( $inheader && $line !~ m/libDDG/ && $line !~ m/-----/ )
+      {
+         $line =~ s/\/\///;
+         if( ($line =~ m/[;){}]$/ || $line =~ m/\/\//) &&
+             $line !~ m/\.\)/ &&
+             $line !~ m/::/ )
+         {
+            if( !$incode )
+            {
+               $line = "\\begin{verbatim}\n " . $line;
+               $incode = 1;
+            }
+
+            $line = $line . "\n";
+         }
+         else
+         {
+            $line =~ s/^\s*//;
+            $line =~ s/_/\\_/g;
+
+            if( $incode )
+            {
+               $line = $line . "\\end{verbatim}\n\\vspace{-\\baselineskip}";
+               $incode = 0;
+            }
+         }
+         if( $line =~ m/^\s*$/ )
+         {
+            $line = "\n\n";
+         }
+
+         $headertext = $headertext . " " . $line;
+      }
+
+      if( $inpublic && !($line =~ m/public:/) )
+      {
+         if( $incomment )
+         {
+            $line =~ s/\/\///;
+            $line =~ s/^\s+//;
+            $line =~ s/_/\\_/g;
+            print $line . "\n";
+         }
+         else
+         {
+            if( $line !~ m/^\s*$/ )
+            {
+               if( !$inmembers )
+               {
+                  $inmembers = 1;
+                  if( !$justsawclassref )
+                  {
+                     print "\\hspace{-.21in}\\rule{5in}{1pt}\n";
+                  }
+                  else
+                  {
+                     print "\\rule{5in}{1pt}\n";
+                     $justsawclassref = 0;
+                  }
+                  print "\\begin{verbatim}\n";
+               }
+               print $line . "\n";
+            }
+         }
+
+         if( $line =~ m/^\s*$/ )
+         {
+            print "\n";
+         }
+      }
+   }
+}
+
+print "\\end{document}\n";
