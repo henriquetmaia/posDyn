@@ -39,7 +39,13 @@ namespace DDG
          int valence( void ) const;
          // returns the number of incident faces / edges
 
+         double dualArea( void ) const;
+         // one third the area of incident faces, area of dual polygon surrounding vertex
+
          double invMass; // density? regular (non-inverse) mass?
+         
+         double cMass; // cloth invMass
+         
          double mass; // density? regular (non-inverse) mass?
    };
 }

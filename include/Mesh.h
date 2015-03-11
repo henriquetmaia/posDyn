@@ -62,8 +62,8 @@ namespace DDG
          Mesh( const Mesh& mesh );
          // constructs a copy of mesh at the center of the sim
 
-         Mesh( const Mesh& mesh, const Vector& translation, const Vector& initialVel, const double& vertexMasses, const double& stiffness );
-         // constructs a copy of mesh with specified dynamics
+         void initDynamics( const Vector& translation, const Vector& initialVel, const double& vertexMasses, const double& stiffness, const bool& fixed );
+         // adds in necessary values for sim with specified dynamics
 
          const Mesh& operator=( const Mesh& mesh );
          // copies mesh
@@ -87,7 +87,11 @@ namespace DDG
          }
 
          double dampingStiffness( void ){
-            return rigidity;
+            return m_rigidity;
+         }
+
+         void addConstraint( Constraint* constraint ){
+            m_constraints.push_back( constraint );
          }
 
          std::vector<HalfEdge> halfedges;
@@ -96,14 +100,16 @@ namespace DDG
          std::vector<Face>     faces;
          // storage for mesh elements
 
+         // TODO: make this private later
+         std::vector< Constraint* > m_constraints;
+
       protected:
          std::string inputFilename;
 
       private:
-         std::vector< Constraint* > m_constraints;
 
          // K_damping coefficient for velocities from [ 0, 1 ]
-         double rigidity;
+         double m_rigidity;
 
    };
 }

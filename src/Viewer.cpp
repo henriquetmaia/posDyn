@@ -9,22 +9,20 @@ using namespace std;
 
 #include "Viewer.h"
 #include "Image.h"
+#include "Gravity.h"
+#include "Distance.h"
 
 namespace DDG
 {
    // declare static member variables
 
    // continue looping dynamics or not
-   static bool simulating;
+   static bool simulating = false;
 
    // the hosting simulation
    Simulation Viewer::sim;
 
-   //Each viewer should have a simulation, not just a mesh, then initiate the meshes within the simulation...
-
-   // Mesh Viewer::mesh;
-
-   Viewer::Render Viewer::mode = renderShaded;
+   Viewer::RenderMode Viewer::mode = renderShaded;
    GLuint Viewer::surfaceDL = 0;
    int Viewer::windowSize[2] = { 512, 512 };
    Camera Viewer::camera;
@@ -32,6 +30,15 @@ namespace DDG
    
    void Viewer :: init( void )
    {
+
+      sim.setNumIters( 1 );
+
+      // sim.addExternalConstraint( new Gravity( 0.981, Vector( 0., -1., 0. ) ) );
+      // sim[1]->addConstraint( new Distance( 0.5, &(sim[0]->vertices[0]), &(sim[1]->vertices[1]), 1. ) );
+      // sim[1]->addConstraint( new Distance( 0.5, &(sim[0]->vertices[1]), &(sim[1]->vertices[0]), 1. ) );
+
+      sim.addExternalConstraint( new Gravity( 0.981, Vector( 0., 1., 0. ) ) );
+
       restoreViewerState();
       initGLUT();
       initGL();
@@ -139,18 +146,18 @@ namespace DDG
    void Viewer :: mProcess( void )
    {
       // [ Mueller - 2007 (4) ]
-      while( simulating ){
+      if( simulating ){
          // take a step
 
          static double sim_time = 0.;
-         if( fluid == NULL ){
-            std::cerr << "[Viewer::mProcess] Fluid not initialized" << std::endl;
+         if( sim.size() == 0 ){
+            cerr << "[Viewer::mProcess] Simulation not initialized" << endl;
             exit( EXIT_FAILURE );
          }
-
+         cout << "Stepping, @ time: " << sim_time << endl;
          const float dt = 0.005;
-
          sim.step( dt );
+         sim_time += dt;
 
          updateDisplayList();
       }
@@ -158,13 +165,17 @@ namespace DDG
    
    void Viewer :: mResetMesh( void )
    {
-      mesh.reload();
+      for( unsigned m = 0; m < sim.size(); ++m ){
+         sim[m]->reload();         
+      }
       updateDisplayList();
    }
    
    void Viewer :: mWriteMesh( void )
    {
-      mesh.write( "out.obj" );
+      for( unsigned m = 0; m < sim.size(); ++m ){
+         sim[m]->write( "out" + to_string( m ) + ".obj" );         
+      }
    }
    
    void Viewer :: mExit( void )
@@ -236,8 +247,8 @@ namespace DDG
             mScreenshot();
             break;
          case ' ':
-            simulating != simulating;
-            mProcess();
+            simulating = !simulating;
+            // mProcess();
             break;
          case 27:
             mExit();
@@ -350,36 +361,39 @@ namespace DDG
 
    void Viewer :: drawPolygons( void )
    {
-      glColor3f( 1., .4, 0. );
+      // glColor3f( 1., .4, 0. ); // Caltech Orange
+      glColor3f( 0.549, 0.839, 1. ); // Columbia Blue
 
-      for( FaceCIter f  = mesh.faces.begin();
-                     f != mesh.faces.end();
-                     f ++ )
-      {
-         if( f->isBoundary() ) continue;
-
-         glBegin( GL_POLYGON );
-         if( mode == renderWireframe )
+      for( unsigned m = 0; m < sim.size(); ++m ){
+         for( FaceCIter f  = sim[m]->faces.begin();
+                        f != sim[m]->faces.end();
+                        f ++ )
          {
-            Vector N = f->normal();
-            glNormal3dv( &N[0] );
-         }
+            if( f->isBoundary() ) continue;
 
-         HalfEdgeCIter he = f->he;
-         do
-         {
-            if( mode != renderWireframe )
+            glBegin( GL_POLYGON );
+            if( mode == renderWireframe )
             {
-               Vector N = he->vertex->normal();
+               Vector N = f->normal();
                glNormal3dv( &N[0] );
             }
 
-            glVertex3dv( &he->vertex->position[0] );
+            HalfEdgeCIter he = f->he;
+            do
+            {
+               if( mode != renderWireframe )
+               {
+                  Vector N = he->vertex->normal();
+                  glNormal3dv( &N[0] );
+               }
 
-            he = he->next;
+               glVertex3dv( &he->vertex->position[0] );
+
+               he = he->next;
+            }
+            while( he != f->he );
+            glEnd();
          }
-         while( he != f->he );
-         glEnd();
       }
    }
 
@@ -393,12 +407,14 @@ namespace DDG
       glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 
       glBegin( GL_LINES );
-      for( EdgeCIter e  = mesh.edges.begin();
-            e != mesh.edges.end();
-            e ++ )
-      {
-         glVertex3dv( &e->he->vertex->position[0] );
-         glVertex3dv( &e->he->flip->vertex->position[0] );
+      for( unsigned m = 0; m < sim.size(); ++m ){
+         for( EdgeCIter e  = sim[m]->edges.begin();
+               e != sim[m]->edges.end();
+               e ++ )
+         {
+            glVertex3dv( &e->he->vertex->position[0] );
+            glVertex3dv( &e->he->flip->vertex->position[0] );
+         }
       }
       glEnd();
 
@@ -418,13 +434,15 @@ namespace DDG
       glColor4f( 1., 0., 0., 1. ); // red
 
       glBegin( GL_POINTS );
-      for( VertexCIter v  = mesh.vertices.begin();
-                       v != mesh.vertices.end();
-                       v ++ )
-      {
-         if( v->isIsolated() )
+      for( unsigned m = 0; m < sim.size(); ++m ){
+         for( VertexCIter v  = sim[m]->vertices.begin();
+                          v != sim[m]->vertices.end();
+                          v ++ )
          {
-            glVertex3dv( &v->position[0] );
+            if( v->isIsolated() )
+            {
+               glVertex3dv( &v->position[0] );
+            }
          }
       }
       glEnd();
@@ -460,6 +478,7 @@ namespace DDG
    void Viewer :: idle( void )
    {
       camera.idle();
+      mProcess();
       glutPostRedisplay();
    }
 

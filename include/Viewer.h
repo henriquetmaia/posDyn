@@ -25,9 +25,7 @@ namespace DDG
          // displays the viewer until the program ends
 
          static Simulation sim;
-
-         // static Mesh mesh;
-         // surface mesh visualized by Viewer
+         // contains all the meshes visualized by Viewer
 
       protected:
          // draw routines

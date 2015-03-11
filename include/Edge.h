@@ -19,6 +19,10 @@ namespace DDG
       public:
          HalfEdgeIter he;
          // points to one of the two halfedges associated with this edge
+
+         double dihedralAngle;
+
+         double l0;
    };
 }
 

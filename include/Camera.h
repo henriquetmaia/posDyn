@@ -30,7 +30,7 @@ namespace DDG
          // constructor
 
          Quaternion clickToSphere( int x, int y );
-         // projects a mous click onto the unit sphere
+         // projects a mouse click onto the unit sphere
          
          void setView( void ) const;
          // applies the camera transformation to the OpenGL modelview stack

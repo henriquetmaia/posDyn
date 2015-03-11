@@ -24,7 +24,7 @@ namespace DDG
    {
       public:
 
-         Simulation( vector< Mesh* > surface_ptrs, const double& numIters );
+         Simulation( void );
 
          ~Simulation( void );
 
@@ -38,6 +38,8 @@ namespace DDG
 
          void velocityUpdate( void );
 
+         void setNumIters( const unsigned& iterations );
+
          unsigned numExternalConstraints( void ){
             return m_externalConstraints.size();
          }
@@ -46,13 +48,25 @@ namespace DDG
             m_externalConstraints.push_back( extConstraint );
          }
 
+         int addMesh( const std::string& filename );
+
+         Mesh* operator[] ( const unsigned& index );
+         // returns reference to the specified mesh (0-based indexing)
+
+         const Mesh* operator[] ( const unsigned& index ) const;
+         // returns const reference to the specified mesh (0-based indexing)         
+
+         const unsigned size( void );
+         // returns number of meshes contained in sim
+
       protected:       
 
       private:
 
+         vector< Mesh* > m_meshes;
+
          unsigned m_solverIterations;
 
-         vector< Mesh* > m_meshes;
          vector< Constraint* > m_externalConstraints;
          vector< Constraint* > m_collisionConstraints;
    };

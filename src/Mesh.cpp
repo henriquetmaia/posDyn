@@ -3,6 +3,9 @@
 #include "Mesh.h"
 #include "MeshIO.h"
 #include "Vector.h"
+#include "Balloon.h"
+#include "Bend.h"
+#include "Distance.h"
 
 using namespace std;
 
@@ -13,16 +16,58 @@ namespace DDG
    
    Mesh :: Mesh( const Mesh& mesh )
    {
-      Mesh( mesh, Vector(), Vector(), 1.0, 1.0 );
-   }
-
-   Mesh :: Mesh( const Mesh& mesh, const Vector& translation, const Vector& initialVel, const double& mass, const double& stiffness )
-   {
       *this = mesh;
-
-      // Need to initialize mesh (vertex) positions, velocities, and inverse masses
    }
-   
+
+   void Mesh :: initDynamics( const Vector& translation, const Vector& initialVel, const double& mass, const double& stiffness, const bool& fixed )
+   {
+      // Need to initialize Vertex properties
+      for( VertexIter v = vertices.begin(); v != vertices.end(); ++v )
+      {
+         v->position += translation;
+         v->velocity = initialVel;
+         v->mass = mass;
+         if( fixed ){
+            v->invMass = 0.;
+         }
+         else{
+            v->invMass = 1.0 / mass;
+         }
+      }
+
+      m_rigidity = stiffness;
+
+      // Need to initialize Constraints on mesh
+      // TODO:
+      // m_constraints.push_back( new Distance( this, 1.0 ) );
+
+      // m_constraints.push_back( new Balloon( this, 1.55 ) );
+      // m_constraints.push_back( new Distance( this, 1.0 ) );
+
+      m_constraints.push_back( new Distance( this, 1.0 ) );
+
+      m_constraints.push_back( new Balloon( this, 1.2 ) );
+
+      // m_constraints.push_back( new Bend( this, 1.15, 0.5 ) );
+      // m_constraints.push_back( new Distance( this, 1.0 ) );
+
+      // m_constraints.push_back( new Balloon( this, 1.75 ) );
+      // m_constraints.push_back( new Bend( this, 1.15, 0.5 ) );
+      // m_constraints.push_back( new Distance( this, 1.0 ) );
+
+      // m_constraints.push_back( new Balloon( this, 0.75 ) );
+      // m_constraints.push_back( new Bend( this, 1.15, 0.5 ) );
+      // m_constraints.push_back( new Distance( this, 1.0 ) );
+
+      // m_constraints.push_back( new Balloon( this, 1.75 ) );
+
+      // m_constraints.push_back( new Balloon( this, 0.75 ) );
+
+      // m_constraints.push_back( new Bend( this, 1.15, 0.5 ) );
+
+
+   }
+ 
    class  HalfEdgeIterCompare { public: bool operator()( const  HalfEdgeIter& i, const  HalfEdgeIter& j ) const { return &*i < &*j; } };
    class HalfEdgeCIterCompare { public: bool operator()( const HalfEdgeCIter& i, const HalfEdgeCIter& j ) const { return &*i < &*j; } };
    class    VertexIterCompare { public: bool operator()( const    VertexIter& i, const    VertexIter& j ) const { return &*i < &*j; } };
@@ -78,7 +123,7 @@ namespace DDG
       int rval;
       if( !( rval = MeshIO::read( in, *this )))
       {
-         normalize();
+         normalize(); // TODO: May not always want to do this...
       }
       return rval;
    }

@@ -25,6 +25,7 @@ namespace DDG
          {
             m_stiffness = 1.;
             m_equality = false;
+            m_cardinality = 4;
 
          };
 

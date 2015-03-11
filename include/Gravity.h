@@ -9,10 +9,10 @@
 #ifndef DDG_GRAVITY_H
 #define DDG_GRAVITY_H
 
-
 #include "Vector.h"
 #include "Mesh.h"
 #include "Constraint.h"
+#include <iostream>
 
 namespace DDG
 {
@@ -21,17 +21,21 @@ namespace DDG
    {
       public:
 
-         Gravity( double& accConstant, Vector& direction )
+         Gravity( double accConstant, Vector direction )
          {
          	direction.normalize();
          	m_dir = direction;
          	m_g = accConstant;
          };
 
-         virtual ~Gravity( void );
+         virtual ~Gravity( void ){};
+
+         virtual void forceFunction( void ){
+            std::cerr << "forceFunction ( void ) not implemented for Constraint:: GRAVITY " << std::endl;
+         };
 
          // same as forceFunction but for external forces and other forces only dependent on single vertex
-         virtual double forceFunction( Vector& position )
+         virtual Vector forceFunction( Vector& position )
          {
          	return m_g * m_dir;
          };

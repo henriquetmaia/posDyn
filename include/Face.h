@@ -27,6 +27,10 @@ namespace DDG
          Vector normal( void ) const;
          // returns the unit normal associated with this face; normal
          // orientation is determined by the circulation order of halfedges
+
+         double area( void ) const;
+         // area of this face
+
    };
 }
 

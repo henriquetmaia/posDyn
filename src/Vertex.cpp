@@ -46,5 +46,21 @@ namespace DDG
 
       return n;
    }
+
+   double Vertex::dualArea( void ) const
+   {
+      double incidentAreaSum = 0;
+      HalfEdgeCIter h = he;
+      do
+      {
+         incidentAreaSum += h->face->area();
+         h = h->flip->next;
+      }
+      while( h != he );
+
+      return incidentAreaSum / 3;
+   }
+
+   
 }
 

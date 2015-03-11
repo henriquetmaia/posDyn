@@ -50,12 +50,12 @@ namespace DDG
    {
       MeshData data;
    
-      if( readMeshData( in, data ))
+      if( readMeshData( in, data ) )
       {
          return 1;
       }
 
-      if( buildMesh( data, mesh ))
+      if( buildMesh( data, mesh ) )
       {
          return 1;
       }
