@@ -5,6 +5,7 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+
 using namespace std;
 
 #include "Viewer.h"
@@ -63,7 +64,7 @@ namespace DDG
       glutInitWindowSize( windowSize[0], windowSize[1] );
       glutInitDisplayMode( GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH );
       glutInit( &argc, (char**)&argv );
-      glutCreateWindow( "PosistionBasedDyanmics - htm2104" );
+      glutCreateWindow( "PosistionBasedDynamics - htm2104" );
    
       // specify callbacks
       glutDisplayFunc  ( Viewer::display  );
@@ -94,8 +95,8 @@ namespace DDG
 
    void Viewer :: initGLSL( void )
    {
-      shader.loadVertex( "shaders/vertex.glsl" );
-      shader.loadFragment( "shaders/fragment.glsl" );
+      shader.loadVertex( "shaders/vertex.glsl" ); // Change these to Toon-shaders
+      shader.loadFragment( "shaders/fragment.glsl" ); // or Cel-shaders
    }
    
    void Viewer :: menu( int value )

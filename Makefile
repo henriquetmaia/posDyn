@@ -28,13 +28,13 @@ DDG_OPENGL_LIBS       = -framework OpenGL -framework GLUT
 TARGET = posDyn
 CC = g++
 LD = g++
-CFLAGS = -O3 -Wall -Wno-deprecated -Werror -pedantic  $(DDG_INCLUDE_PATH) -I./include -I./src -DNDEBUG
+CFLAGS = -O3 -Wall -Wno-deprecated -Wno-unused-private-field -Werror -pedantic  $(DDG_INCLUDE_PATH) -I./include -I./src -DNDEBUG
 LFLAGS = -O3 -Wall -Wno-deprecated -Werror -pedantic $(DDG_LIBRARY_PATH) -DNDEBUG
 LIBS = $(DDG_OPENGL_LIBS) $(DDG_SUITESPARSE_LIBS) $(DDG_BLAS_LIBS)
 
 ## !! Do not edit below this line -- dependencies can be updated by running ./update ##################
 
-OBJS = obj/Camera.o obj/Complex.o obj/DenseMatrix.o obj/Edge.o obj/Face.o obj/HalfEdge.o obj/Image.o obj/LinearContext.o obj/LinearEquation.o obj/LinearPolynomial.o obj/LinearSystem.o obj/Mesh.o obj/MeshIO.o obj/Quaternion.o obj/Real.o obj/Shader.o obj/Simulation.o obj/SparseMatrix.o obj/Variable.o obj/Vector.o obj/Vertex.o obj/Viewer.o obj/main.o
+OBJS = obj/Camera.o obj/Complex.o obj/Constraint.o obj/DenseMatrix.o obj/Edge.o obj/Face.o obj/HalfEdge.o obj/Image.o obj/LinearContext.o obj/LinearEquation.o obj/LinearPolynomial.o obj/LinearSystem.o obj/Mesh.o obj/MeshIO.o obj/Quaternion.o obj/Real.o obj/Shader.o obj/Simulation.o obj/SparseMatrix.o obj/Variable.o obj/Vector.o obj/Vertex.o obj/Viewer.o obj/main.o
 
 all: $(TARGET)
 
@@ -46,6 +46,9 @@ obj/Camera.o: src/Camera.cpp include/Camera.h include/Quaternion.h include/Vecto
 
 obj/Complex.o: src/Complex.cpp include/Complex.h 
 	$(CC) $(CFLAGS) -c src/Complex.cpp -o obj/Complex.o
+
+obj/Constraint.o: src/Constraint.cpp include/Constraint.h include/Vector.h 
+	$(CC) $(CFLAGS) -c src/Constraint.cpp -o obj/Constraint.o
 
 obj/DenseMatrix.o: src/DenseMatrix.cpp include/DenseMatrix.h include/Types.h src/DenseMatrix.inl include/LinearContext.h include/Quaternion.h include/Vector.h include/Complex.h include/SparseMatrix.h src/SparseMatrix.inl include/Real.h include/Utility.h 
 	$(CC) $(CFLAGS) -c src/DenseMatrix.cpp -o obj/DenseMatrix.o
@@ -74,7 +77,7 @@ obj/LinearPolynomial.o: src/LinearPolynomial.cpp include/LinearPolynomial.h incl
 obj/LinearSystem.o: src/LinearSystem.cpp include/LinearSystem.h include/LinearEquation.h include/LinearPolynomial.h include/Variable.h include/SparseMatrix.h include/Types.h src/SparseMatrix.inl include/Real.h include/Complex.h include/DenseMatrix.h src/DenseMatrix.inl include/LinearContext.h include/Quaternion.h include/Vector.h include/Utility.h 
 	$(CC) $(CFLAGS) -c src/LinearSystem.cpp -o obj/LinearSystem.o
 
-obj/Mesh.o: src/Mesh.cpp include/Mesh.h include/HalfEdge.h include/Vector.h include/Types.h include/Vertex.h include/Edge.h include/Face.h include/Constraint.h include/MeshIO.h 
+obj/Mesh.o: src/Mesh.cpp include/Mesh.h include/HalfEdge.h include/Vector.h include/Types.h include/Vertex.h include/Edge.h include/Face.h include/Constraint.h include/MeshIO.h include/Balloon.h include/Bend.h include/Distance.h 
 	$(CC) $(CFLAGS) -c src/Mesh.cpp -o obj/Mesh.o
 
 obj/MeshIO.o: src/MeshIO.cpp include/MeshIO.h include/Mesh.h include/HalfEdge.h include/Vector.h include/Types.h include/Vertex.h include/Edge.h include/Face.h include/Constraint.h 
@@ -89,7 +92,7 @@ obj/Real.o: src/Real.cpp include/Real.h
 obj/Shader.o: src/Shader.cpp include/Shader.h 
 	$(CC) $(CFLAGS) -c src/Shader.cpp -o obj/Shader.o
 
-obj/Simulation.o: src/Simulation.cpp include/Vector.h 
+obj/Simulation.o: src/Simulation.cpp include/Vector.h include/Simulation.h include/Face.h include/Types.h include/HalfEdge.h include/Mesh.h include/Vertex.h include/Edge.h include/Constraint.h 
 	$(CC) $(CFLAGS) -c src/Simulation.cpp -o obj/Simulation.o
 
 obj/SparseMatrix.o: src/SparseMatrix.cpp include/SparseMatrix.h include/Types.h src/SparseMatrix.inl include/Real.h include/Complex.h include/DenseMatrix.h src/DenseMatrix.inl include/LinearContext.h include/Quaternion.h include/Vector.h include/Utility.h 
@@ -104,10 +107,10 @@ obj/Vector.o: src/Vector.cpp include/Vector.h
 obj/Vertex.o: src/Vertex.cpp include/Vertex.h include/Vector.h include/Types.h include/Mesh.h include/HalfEdge.h include/Edge.h include/Face.h include/Constraint.h 
 	$(CC) $(CFLAGS) -c src/Vertex.cpp -o obj/Vertex.o
 
-obj/Viewer.o: src/Viewer.cpp include/Viewer.h include/Mesh.h include/HalfEdge.h include/Vector.h include/Types.h include/Vertex.h include/Edge.h include/Face.h include/Constraint.h include/Camera.h include/Quaternion.h include/Complex.h include/Shader.h include/Simulation.h include/Image.h 
+obj/Viewer.o: src/Viewer.cpp include/Viewer.h include/Mesh.h include/HalfEdge.h include/Vector.h include/Types.h include/Vertex.h include/Edge.h include/Face.h include/Constraint.h include/Camera.h include/Quaternion.h include/Complex.h include/Shader.h include/Simulation.h include/Image.h include/Gravity.h 
 	$(CC) $(CFLAGS) -c src/Viewer.cpp -o obj/Viewer.o
 
-obj/main.o: src/main.cpp include/Viewer.h include/Mesh.h include/HalfEdge.h include/Vector.h include/Types.h include/Vertex.h include/Edge.h include/Face.h include/Constraint.h include/Camera.h include/Quaternion.h include/Complex.h include/Shader.h include/Simulation.h include/DenseMatrix.h src/DenseMatrix.inl include/LinearContext.h include/SparseMatrix.h src/SparseMatrix.inl include/Real.h include/Utility.h 
+obj/main.o: src/main.cpp include/Viewer.h include/Mesh.h include/HalfEdge.h include/Vector.h include/Types.h include/Vertex.h include/Edge.h include/Face.h include/Constraint.h include/Camera.h include/Quaternion.h include/Complex.h include/Shader.h include/Simulation.h 
 	$(CC) $(CFLAGS) -c src/main.cpp -o obj/main.o
 
 
